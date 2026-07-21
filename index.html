@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ping Pong Tournament Manager</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0b3d5c;color:#fff;margin:0;padding:20px}
+h1{margin-top:0}
+textarea,input,select,button{font-size:16px;padding:8px;margin:4px}
+.panel{background:#134f74;padding:16px;border-radius:10px;max-width:900px}
+#players li{margin:2px 0}
+.match{border:1px solid #7ec8e3;border-radius:8px;padding:8px;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="panel">
+<h1>🏓 Ping Pong Tournament Manager</h1>
+<p>This is the starter file. It already saves players to LocalStorage and generates a simple single-elimination bracket. It is intended as the foundation for the larger version.</p>
+
+<textarea id="bulk" rows="8" cols="40" placeholder="Paste one player per line"></textarea><br>
+<button id="add">Add Players</button>
+<select id="mode">
+<option>Single Elimination</option>
+<option>Double Elimination (Coming Soon)</option>
+</select>
+<button id="make">Make Bracket</button>
+
+<h2>Players</h2>
+<ul id="players"></ul>
+
+<h2>Bracket</h2>
+<div id="bracket"></div>
+</div>
+
+<script>
+const KEY="pp_tournament";
+let state=JSON.parse(localStorage.getItem(KEY)||'{"players":[],"matches":[]}');
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+function renderPlayers(){
+ const ul=document.getElementById("players");
+ ul.innerHTML="";
+ state.players.forEach(p=>{
+   const li=document.createElement("li");
+   li.textContent=p;
+   ul.appendChild(li);
+ });
+}
+function renderBracket(){
+ const b=document.getElementById("bracket");
+ b.innerHTML="";
+ state.matches.forEach((m,i)=>{
+   const d=document.createElement("div");
+   d.className="match";
+   d.textContent=`Match ${i+1}: ${m.a} vs ${m.b}`;
+   b.appendChild(d);
+ });
+}
+document.getElementById("add").onclick=()=>{
+ const names=document.getElementById("bulk").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ state.players.push(...names);
+ document.getElementById("bulk").value="";
+ save(); renderPlayers();
+};
+document.getElementById("make").onclick=()=>{
+ const arr=[...state.players];
+ for(let i=arr.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [arr[i],arr[j]]=[arr[j],arr[i]];
+ }
+ state.matches=[];
+ for(let i=0;i<arr.length;i+=2){
+   state.matches.push({a:arr[i]||"BYE",b:arr[i+1]||"BYE"});
+ }
+ save(); renderBracket();
+};
+renderPlayers();
+renderBracket();
+</script>
+</body>
+</html>
