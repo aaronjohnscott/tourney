@@ -1,83 +1,767 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ping Pong Tournament Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏓 Ping Pong Tournament Bracket</title>
 <style>
-body{font-family:Arial,sans-serif;background:#0b3d5c;color:#fff;margin:0;padding:20px}
-h1{margin-top:0}
-textarea,input,select,button{font-size:16px;padding:8px;margin:4px}
-.panel{background:#134f74;padding:16px;border-radius:10px;max-width:900px}
-#players li{margin:2px 0}
-.match{border:1px solid #7ec8e3;border-radius:8px;padding:8px;margin:6px 0}
+  :root{
+    --table-green:#0b6e4f;
+    --table-green-dark:#085a40;
+    --line-white:#f4f7f5;
+    --ball-orange:#ff7a29;
+    --ball-orange-dark:#e5620f;
+    --card-bg:#ffffff;
+    --card-border:#d8e3de;
+    --text-dark:#12241d;
+    --text-mute:#5c6b64;
+    --gold:#e0a store;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background:linear-gradient(180deg,var(--table-green) 0%, var(--table-green-dark) 320px, #eef3f0 320px);
+    color:var(--text-dark);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  header{
+    text-align:center;
+    padding:36px 16px 20px;
+    color:var(--line-white);
+  }
+  header h1{
+    margin:0 0 6px;
+    font-size:2rem;
+    letter-spacing:0.5px;
+  }
+  header p{
+    margin:0;
+    opacity:0.85;
+    font-size:0.95rem;
+  }
+  .container{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 16px;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    padding:20px 22px;
+    margin-bottom:20px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  }
+  .card h2{
+    margin:0 0 14px;
+    font-size:1.15rem;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  input[type="text"], textarea{
+    font-family:inherit;
+    font-size:0.95rem;
+    padding:10px 12px;
+    border:1.5px solid var(--card-border);
+    border-radius:8px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input[type="text"]:focus, textarea:focus{
+    border-color:var(--ball-orange);
+  }
+  textarea{
+    width:100%;
+    min-height:90px;
+    resize:vertical;
+  }
+  button{
+    font-family:inherit;
+    font-size:0.9rem;
+    font-weight:600;
+    padding:10px 16px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    transition:transform .08s, box-shadow .15s, opacity .15s;
+  }
+  button:active{ transform:scale(0.97); }
+  button:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-primary{ background:var(--ball-orange); color:white; }
+  .btn-primary:hover:not(:disabled){ background:var(--ball-orange-dark); }
+  .btn-secondary{ background:#eef3f0; color:var(--text-dark); border:1.5px solid var(--card-border); }
+  .btn-secondary:hover:not(:disabled){ background:#e2ece6; }
+  .btn-danger{ background:#fdeceb; color:#c0392b; border:1.5px solid #f3c9c5; }
+  .btn-danger:hover:not(:disabled){ background:#fadedb; }
+  .btn-small{ padding:6px 10px; font-size:0.78rem; }
+
+  .player-list{
+    list-style:none;
+    padding:0;
+    margin:14px 0 0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .player-chip{
+    background:#eef7f2;
+    border:1px solid #cfe6da;
+    padding:6px 8px 6px 12px;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.88rem;
+  }
+  .player-chip .seed{
+    color:var(--text-mute);
+    font-size:0.75rem;
+  }
+  .player-chip button{
+    background:none;
+    border:none;
+    color:#c0392b;
+    font-weight:bold;
+    padding:0 4px;
+    cursor:pointer;
+    font-size:0.95rem;
+  }
+  .count-badge{
+    background:var(--table-green);
+    color:white;
+    border-radius:20px;
+    padding:2px 10px;
+    font-size:0.78rem;
+    font-weight:600;
+  }
+  .format-choice{
+    display:flex;
+    gap:12px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .format-option{
+    flex:1;
+    min-width:200px;
+    border:2px solid var(--card-border);
+    border-radius:10px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .format-option.selected{
+    border-color:var(--ball-orange);
+    background:#fff5ee;
+  }
+  .format-option h3{ margin:0 0 4px; font-size:0.98rem; }
+  .format-option p{ margin:0; font-size:0.82rem; color:var(--text-mute); }
+
+  .champion-banner{
+    background:linear-gradient(90deg,#ffd76a,#ff7a29);
+    color:#2a1400;
+    border-radius:12px;
+    padding:18px 20px;
+    text-align:center;
+    font-size:1.2rem;
+    font-weight:700;
+    margin-bottom:20px;
+    box-shadow:0 6px 20px rgba(255,122,41,0.35);
+  }
+
+  .bracket-section-title{
+    color:var(--line-white);
+    font-size:1rem;
+    font-weight:700;
+    margin:22px 0 10px;
+    padding-left:4px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .bracket-scroll{
+    overflow-x:auto;
+    padding-bottom:12px;
+  }
+  .bracket{
+    display:flex;
+    gap:36px;
+    padding:6px;
+    min-width:max-content;
+  }
+  .round{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    gap:18px;
+    min-width:190px;
+  }
+  .round-label{
+    text-align:center;
+    font-size:0.75rem;
+    font-weight:700;
+    color:var(--table-green-dark);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    margin-bottom:4px;
+  }
+  .match{
+    background:var(--card-bg);
+    border:1.5px solid var(--card-border);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 2px 6px rgba(0,0,0,0.06);
+    position:relative;
+  }
+  .slot{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 12px;
+    font-size:0.86rem;
+    border-bottom:1px solid var(--card-border);
+    gap:6px;
+  }
+  .slot:last-child{ border-bottom:none; }
+  .slot.clickable{ cursor:pointer; }
+  .slot.clickable:hover{ background:#fff3ea; }
+  .slot.winner{ background:#e9f8ee; font-weight:700; color:#0b6e4f; }
+  .slot.tbd{ color:var(--text-mute); font-style:italic; }
+  .slot.bye{ color:var(--text-mute); font-style:italic; }
+  .slot .tag{ font-size:0.7rem; color:var(--ball-orange-dark); font-weight:700; }
+  .match-undo{
+    position:absolute;
+    top:3px; right:5px;
+    font-size:0.65rem;
+    color:var(--text-mute);
+    background:none;
+    border:none;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:2px 4px;
+  }
+  .gf-block{ display:flex; gap:36px; }
+  .empty-state{
+    color:var(--text-mute);
+    font-size:0.9rem;
+    text-align:center;
+    padding:20px;
+  }
+  .top-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-bottom:10px;
+  }
 </style>
 </head>
 <body>
-<div class="panel">
-<h1>🏓 Ping Pong Tournament Manager</h1>
-<p>This is the starter file. It already saves players to LocalStorage and generates a simple single-elimination bracket. It is intended as the foundation for the larger version.</p>
 
-<textarea id="bulk" rows="8" cols="40" placeholder="Paste one player per line"></textarea><br>
-<button id="add">Add Players</button>
-<select id="mode">
-<option>Single Elimination</option>
-<option>Double Elimination (Coming Soon)</option>
-</select>
-<button id="make">Make Bracket</button>
+<header>
+  <h1>🏓 Ping Pong Tournament Bracket</h1>
+  <p>Add your players, choose a format, and let the paddles fly.</p>
+</header>
 
-<h2>Players</h2>
-<ul id="players"></ul>
+<div class="container">
 
-<h2>Bracket</h2>
-<div id="bracket"></div>
+  <div class="top-actions">
+    <button class="btn-danger btn-small" id="newTournamentBtn">🔄 New Tournament</button>
+  </div>
+
+  <div id="champBanner"></div>
+
+  <!-- PLAYER INPUT -->
+  <div class="card" id="playerCard">
+    <h2>👥 Players <span class="count-badge" id="playerCount">0</span></h2>
+
+    <div class="row" style="margin-bottom:10px;">
+      <input type="text" id="singleNameInput" placeholder="Add one player name…" style="flex:1;min-width:180px;">
+      <button class="btn-secondary" id="addSingleBtn">Add</button>
+    </div>
+
+    <textarea id="bulkNameInput" placeholder="…or paste a list, one name per line:
+Alice
+Bob
+Charlie
+Dana"></textarea>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn-secondary" id="addBulkBtn">Add All Lines</button>
+      <button class="btn-danger" id="clearPlayersBtn">Clear Player List</button>
+    </div>
+
+    <ul class="player-list" id="playerList"></ul>
+  </div>
+
+  <!-- FORMAT + GENERATE -->
+  <div class="card" id="formatCard">
+    <h2>🏆 Tournament Format</h2>
+    <div class="format-choice">
+      <div class="format-option" data-format="single" id="opt-single">
+        <h3>Single Elimination</h3>
+        <p>Lose once, you're out. Fast and simple.</p>
+      </div>
+      <div class="format-option" data-format="double" id="opt-double">
+        <h3>Double Elimination</h3>
+        <p>Lose once, drop to the losers' bracket. Lose twice, you're out.</p>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn-primary" id="generateBtn" disabled>Generate Bracket</button>
+      <button class="btn-secondary" id="editPlayersBtn" style="display:none;">✏️ Edit Players (resets bracket)</button>
+    </div>
+  </div>
+
+  <!-- BRACKET DISPLAY -->
+  <div id="bracketDisplay"></div>
+
 </div>
 
 <script>
-const KEY="pp_tournament";
-let state=JSON.parse(localStorage.getItem(KEY)||'{"players":[],"matches":[]}');
+(function(){
+  "use strict";
+  const STORAGE_KEY = 'pingpong_bracket_state_v1';
 
-function save(){localStorage.setItem(KEY,JSON.stringify(state));}
-function renderPlayers(){
- const ul=document.getElementById("players");
- ul.innerHTML="";
- state.players.forEach(p=>{
-   const li=document.createElement("li");
-   li.textContent=p;
-   ul.appendChild(li);
- });
-}
-function renderBracket(){
- const b=document.getElementById("bracket");
- b.innerHTML="";
- state.matches.forEach((m,i)=>{
-   const d=document.createElement("div");
-   d.className="match";
-   d.textContent=`Match ${i+1}: ${m.a} vs ${m.b}`;
-   b.appendChild(d);
- });
-}
-document.getElementById("add").onclick=()=>{
- const names=document.getElementById("bulk").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- state.players.push(...names);
- document.getElementById("bulk").value="";
- save(); renderPlayers();
-};
-document.getElementById("make").onclick=()=>{
- const arr=[...state.players];
- for(let i=arr.length-1;i>0;i--){
-   const j=Math.floor(Math.random()*(i+1));
-   [arr[i],arr[j]]=[arr[j],arr[i]];
- }
- state.matches=[];
- for(let i=0;i<arr.length;i+=2){
-   state.matches.push({a:arr[i]||"BYE",b:arr[i+1]||"BYE"});
- }
- save(); renderBracket();
-};
-renderPlayers();
-renderBracket();
+  let state = {
+    players: [],
+    format: null,
+    bracket: null
+  };
+
+  // ---------- PERSISTENCE ----------
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+  function loadState(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      try{ state = JSON.parse(raw); }catch(e){ state = {players:[], format:null, bracket:null}; }
+    }
+  }
+
+  // ---------- BRACKET MATH HELPERS ----------
+  function nextPow2(n){ let p=1; while(p<n) p*=2; return p; }
+
+  function seedOrder(size){
+    let result=[1];
+    let n=1;
+    while(n<size){
+      n*=2;
+      const nr=[];
+      for(let i=0;i<result.length;i++){
+        nr.push(result[i]);
+        nr.push(n+1-result[i]);
+      }
+      result=nr;
+    }
+    return result;
+  }
+
+  function makeMatch(id,label){
+    return {id,label,p1:null,p2:null,winner:null,loser:null,done:false,next:null,nextLoser:null,hidden:false};
+  }
+
+  // ---------- BRACKET GENERATION ----------
+  function generateBracket(players, format){
+    const size = nextPow2(players.length);
+    const k = Math.log2(size);
+    const order = seedOrder(size);
+    const slots = order.map(seed => seed<=players.length ? players[seed-1] : 'BYE');
+
+    const matches = {};
+    const wbRounds = [];
+    let roundCount = size/2;
+    for(let r=0;r<k;r++){
+      const ids=[];
+      for(let i=0;i<roundCount;i++){
+        const id = 'W'+r+'-'+i;
+        matches[id] = makeMatch(id, r===k-1 ? 'Winners Final' : 'Winners Round '+(r+1));
+        ids.push(id);
+      }
+      wbRounds.push(ids);
+      roundCount = roundCount/2;
+    }
+    wbRounds[0].forEach((id,i)=>{
+      matches[id].p1 = slots[2*i];
+      matches[id].p2 = slots[2*i+1];
+    });
+    for(let r=0;r<k-1;r++){
+      wbRounds[r].forEach((id,i)=>{
+        const nextId = wbRounds[r+1][Math.floor(i/2)];
+        matches[id].next = {id:nextId, slot: i%2===0?'p1':'p2'};
+      });
+    }
+
+    let lbRounds = [];
+    let gf=null, gf2=null;
+
+    if(format==='double'){
+      if(size===2){
+        gf='GF0';
+        matches[gf]=makeMatch(gf,'Grand Final');
+        matches[wbRounds[0][0]].next = {id:gf, slot:'p1'};
+        matches[wbRounds[0][0]].nextLoser = {id:gf, slot:'p2'};
+      } else {
+        let m = size/4;
+        let lbIndex = 0;
+
+        const roundAIds=[];
+        for(let i=0;i<m;i++){
+          const id='L'+lbIndex+'-'+i;
+          matches[id]=makeMatch(id,'Losers Round '+(lbIndex+1));
+          roundAIds.push(id);
+        }
+        lbRounds.push(roundAIds);
+        wbRounds[0].forEach((id,i)=>{
+          const target = roundAIds[Math.floor(i/2)];
+          matches[id].nextLoser = {id:target, slot: i%2===0?'p1':'p2'};
+        });
+        let pendingIds = roundAIds;
+        let pendingCount = m;
+        lbIndex++;
+
+        for(let wbRound=1; wbRound<k; wbRound++){
+          const isLast = (wbRound===k-1);
+          const dropIds=[];
+          for(let i=0;i<pendingCount;i++){
+            const id='L'+lbIndex+'-'+i;
+            matches[id]=makeMatch(id, isLast? 'Losers Final' : 'Losers Round '+(lbIndex+1));
+            dropIds.push(id);
+          }
+          lbRounds.push(dropIds);
+          pendingIds.forEach((id,i)=>{ matches[id].next = {id:dropIds[i], slot:'p1'}; });
+          wbRounds[wbRound].forEach((id,i)=>{ matches[id].nextLoser = {id:dropIds[i], slot:'p2'}; });
+          pendingIds = dropIds;
+          lbIndex++;
+
+          if(!isLast && pendingCount>1){
+            const newCount = pendingCount/2;
+            const consIds=[];
+            for(let i=0;i<newCount;i++){
+              const id='L'+lbIndex+'-'+i;
+              matches[id]=makeMatch(id,'Losers Round '+(lbIndex+1));
+              consIds.push(id);
+            }
+            lbRounds.push(consIds);
+            pendingIds.forEach((id,i)=>{
+              const target = consIds[Math.floor(i/2)];
+              matches[id].next = {id:target, slot: i%2===0?'p1':'p2'};
+            });
+            pendingIds = consIds;
+            pendingCount = newCount;
+            lbIndex++;
+          }
+        }
+
+        const lbFinalId = pendingIds[0];
+        gf='GF0';
+        matches[gf]=makeMatch(gf,'Grand Final');
+        matches[lbFinalId].next = {id:gf, slot:'p2'};
+        matches[wbRounds[k-1][0]].next = {id:gf, slot:'p1'};
+
+        gf2='GF1';
+        matches[gf2]=makeMatch(gf2,'Grand Final (Reset)');
+        matches[gf2].hidden = true;
+      }
+    }
+
+    const bracket = {size,k,format,matches,wbRounds,lbRounds,gf,gf2,champion:null};
+
+    wbRounds[0].forEach(id=>tryAutoResolve(bracket,id));
+
+    return bracket;
+  }
+
+  function tryAutoResolve(bracket, matchId){
+    const m = bracket.matches[matchId];
+    if(!m || m.done) return;
+    if(m.p1==='BYE' && m.p2 && m.p2!=='BYE'){ setWinner(bracket, matchId, m.p2); }
+    else if(m.p2==='BYE' && m.p1 && m.p1!=='BYE'){ setWinner(bracket, matchId, m.p1); }
+  }
+
+  function setWinner(bracket, matchId, winnerName){
+    const m = bracket.matches[matchId];
+    m.winner = winnerName;
+    m.loser = (m.p1===winnerName) ? m.p2 : m.p1;
+    m.done = true;
+
+    if(m.next){
+      const nm = bracket.matches[m.next.id];
+      nm[m.next.slot] = winnerName;
+      tryAutoResolve(bracket, m.next.id);
+    }
+    if(m.nextLoser){
+      const lm = bracket.matches[m.nextLoser.id];
+      const loserVal = (m.loser && m.loser!=='BYE') ? m.loser : 'BYE';
+      lm[m.nextLoser.slot] = loserVal;
+      tryAutoResolve(bracket, m.nextLoser.id);
+    }
+
+    if(bracket.format==='single'){
+      if(!m.next) bracket.champion = winnerName;
+    } else {
+      if(matchId===bracket.gf){
+        if(winnerName===m.p1){
+          bracket.champion = winnerName;
+        } else {
+          const gf2 = bracket.matches[bracket.gf2];
+          gf2.hidden = false;
+          gf2.p1 = m.p1;
+          gf2.p2 = m.p2;
+        }
+      } else if(matchId===bracket.gf2){
+        bracket.champion = winnerName;
+      }
+    }
+  }
+
+  function undoMatch(bracket, matchId){
+    const m = bracket.matches[matchId];
+    if(!m.done) return false;
+    if(m.next && bracket.matches[m.next.id].done){
+      alert("Undo the later match first before undoing this one.");
+      return false;
+    }
+    if(m.nextLoser && bracket.matches[m.nextLoser.id].done){
+      alert("Undo the later match first before undoing this one.");
+      return false;
+    }
+    if(m.next){ bracket.matches[m.next.id][m.next.slot] = null; }
+    if(m.nextLoser){ bracket.matches[m.nextLoser.id][m.nextLoser.slot] = null; }
+    m.winner=null; m.loser=null; m.done=false;
+    bracket.champion = null;
+    return true;
+  }
+
+  // ---------- RENDERING ----------
+  const playerListEl = document.getElementById('playerList');
+  const playerCountEl = document.getElementById('playerCount');
+  const generateBtn = document.getElementById('generateBtn');
+  const editPlayersBtn = document.getElementById('editPlayersBtn');
+  const playerCard = document.getElementById('playerCard');
+  const formatCard = document.getElementById('formatCard');
+  const bracketDisplay = document.getElementById('bracketDisplay');
+  const champBanner = document.getElementById('champBanner');
+
+  function renderPlayers(){
+    playerListEl.innerHTML = '';
+    state.players.forEach((name, idx)=>{
+      const li = document.createElement('li');
+      li.className = 'player-chip';
+      li.innerHTML = '<span class="seed">#'+(idx+1)+'</span> '+escapeHtml(name)+' <button data-idx="'+idx+'" title="Remove">✕</button>';
+      playerListEl.appendChild(li);
+    });
+    playerCountEl.textContent = state.players.length;
+    generateBtn.disabled = !(state.players.length>=2 && state.format);
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function renderFormatChoice(){
+    document.getElementById('opt-single').classList.toggle('selected', state.format==='single');
+    document.getElementById('opt-double').classList.toggle('selected', state.format==='double');
+    generateBtn.disabled = !(state.players.length>=2 && state.format);
+  }
+
+  function slotHtml(bracket, matchObj, playerVal, slotKey){
+    let cls = 'slot';
+    let label = playerVal;
+    let clickable = false;
+    if(playerVal===null){
+      cls+=' tbd'; label='TBD';
+    } else if(playerVal==='BYE'){
+      cls+=' bye'; label='— bye —';
+    } else {
+      if(matchObj.done){
+        if(matchObj.winner===playerVal) cls+=' winner';
+      } else if(matchObj.p1 && matchObj.p2 && matchObj.p1!=='BYE' && matchObj.p2!=='BYE'){
+        cls+=' clickable';
+        clickable = true;
+      }
+    }
+    const winnerTag = (matchObj.done && matchObj.winner===playerVal) ? '<span class="tag">WIN</span>' : '';
+    return '<div class="'+cls+'"'+(clickable?' data-match="'+matchObj.id+'" data-pick="'+escapeHtml(playerVal)+'"':'')+'>'+
+      '<span>'+escapeHtml(label)+'</span>'+winnerTag+'</div>';
+  }
+
+  function matchHtml(bracket, matchObj){
+    const undo = matchObj.done ? '<button class="match-undo" data-undo="'+matchObj.id+'">undo</button>' : '';
+    return '<div class="match">'+
+      slotHtml(bracket, matchObj, matchObj.p1, 'p1')+
+      slotHtml(bracket, matchObj, matchObj.p2, 'p2')+
+      undo+
+      '</div>';
+  }
+
+  function roundColumnHtml(bracket, ids, label){
+    let html = '<div class="round"><div class="round-label">'+escapeHtml(label)+'</div>';
+    ids.forEach(id=>{ html += matchHtml(bracket, bracket.matches[id]); });
+    html += '</div>';
+    return html;
+  }
+
+  function renderBracket(){
+    bracketDisplay.innerHTML = '';
+    champBanner.innerHTML = '';
+    const bracket = state.bracket;
+    if(!bracket){
+      return;
+    }
+
+    if(bracket.champion){
+      champBanner.innerHTML = '<div class="champion-banner">🏆 Champion: '+escapeHtml(bracket.champion)+' 🏆</div>';
+    }
+
+    // Winners bracket
+    let wbHtml = '<div class="bracket-section-title">🥇 Winners Bracket</div><div class="bracket-scroll"><div class="bracket">';
+    bracket.wbRounds.forEach((ids, r)=>{
+      const label = bracket.matches[ids[0]].label;
+      wbHtml += roundColumnHtml(bracket, ids, label);
+    });
+    wbHtml += '</div></div>';
+    bracketDisplay.insertAdjacentHTML('beforeend', wbHtml);
+
+    if(bracket.format==='double'){
+      if(bracket.lbRounds.length){
+        let lbHtml = '<div class="bracket-section-title">🥈 Losers Bracket</div><div class="bracket-scroll"><div class="bracket">';
+        bracket.lbRounds.forEach(ids=>{
+          const label = bracket.matches[ids[0]].label;
+          lbHtml += roundColumnHtml(bracket, ids, label);
+        });
+        lbHtml += '</div></div>';
+        bracketDisplay.insertAdjacentHTML('beforeend', lbHtml);
+      }
+
+      let gfHtml = '<div class="bracket-section-title">🏆 Grand Final</div><div class="bracket-scroll"><div class="bracket gf-block">';
+      gfHtml += roundColumnHtml(bracket, [bracket.gf], 'Grand Final');
+      if(bracket.gf2 && !bracket.matches[bracket.gf2].hidden){
+        gfHtml += roundColumnHtml(bracket, [bracket.gf2], 'Bracket Reset');
+      }
+      gfHtml += '</div></div>';
+      bracketDisplay.insertAdjacentHTML('beforeend', gfHtml);
+    }
+
+    // wire up click handlers
+    bracketDisplay.querySelectorAll('[data-match]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const matchId = el.getAttribute('data-match');
+        const pick = el.getAttribute('data-pick');
+        setWinner(state.bracket, matchId, pick);
+        saveState();
+        renderBracket();
+      });
+    });
+    bracketDisplay.querySelectorAll('[data-undo]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const matchId = el.getAttribute('data-undo');
+        if(undoMatch(state.bracket, matchId)){
+          saveState();
+          renderBracket();
+        }
+      });
+    });
+  }
+
+  function renderAll(){
+    renderPlayers();
+    renderFormatChoice();
+    const bracketExists = !!state.bracket;
+    editPlayersBtn.style.display = bracketExists ? 'inline-block' : 'none';
+    formatCard.style.display = bracketExists ? 'none' : 'block';
+    renderBracket();
+  }
+
+  // ---------- EVENT HANDLERS ----------
+  document.getElementById('addSingleBtn').addEventListener('click', ()=>{
+    const input = document.getElementById('singleNameInput');
+    const name = input.value.trim();
+    if(name){
+      state.players.push(name);
+      input.value='';
+      saveState();
+      renderAll();
+    }
+    input.focus();
+  });
+  document.getElementById('singleNameInput').addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ document.getElementById('addSingleBtn').click(); }
+  });
+
+  document.getElementById('addBulkBtn').addEventListener('click', ()=>{
+    const ta = document.getElementById('bulkNameInput');
+    const lines = ta.value.split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+    if(lines.length){
+      state.players.push(...lines);
+      ta.value='';
+      saveState();
+      renderAll();
+    }
+  });
+
+  document.getElementById('clearPlayersBtn').addEventListener('click', ()=>{
+    if(state.players.length===0) return;
+    if(confirm('Clear the entire player list?')){
+      state.players = [];
+      saveState();
+      renderAll();
+    }
+  });
+
+  playerListEl.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-idx]');
+    if(!btn) return;
+    const idx = parseInt(btn.getAttribute('data-idx'),10);
+    state.players.splice(idx,1);
+    saveState();
+    renderAll();
+  });
+
+  document.getElementById('opt-single').addEventListener('click', ()=>{
+    state.format='single'; saveState(); renderAll();
+  });
+  document.getElementById('opt-double').addEventListener('click', ()=>{
+    state.format='double'; saveState(); renderAll();
+  });
+
+  generateBtn.addEventListener('click', ()=>{
+    if(state.players.length<2 || !state.format) return;
+    state.bracket = generateBracket(state.players, state.format);
+    saveState();
+    renderAll();
+  });
+
+  editPlayersBtn.addEventListener('click', ()=>{
+    if(confirm('This will erase all match progress and let you edit the player list. Continue?')){
+      state.bracket = null;
+      saveState();
+      renderAll();
+    }
+  });
+
+  document.getElementById('newTournamentBtn').addEventListener('click', ()=>{
+    if(confirm('Start a brand new tournament? This clears players, format, and all match results.')){
+      state = {players:[], format:null, bracket:null};
+      saveState();
+      renderAll();
+    }
+  });
+
+  // ---------- INIT ----------
+  loadState();
+  renderAll();
+})();
 </script>
+
 </body>
 </html>
